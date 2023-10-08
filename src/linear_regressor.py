@@ -45,6 +45,7 @@ class LinearRegressor:
         points = self.train_dataset.index
         n_points = len(points)
         
+        # error here
         for i in points:
             point = np.array(self.train_dataset.loc[i])
             w_0 = self.weights[0]
