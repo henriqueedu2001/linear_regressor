@@ -19,44 +19,54 @@ class LinearRegressor:
     
     
     def gradient_descendent_fit(self, learning_rate: float, n_iterations: int) -> None:
-        """Aplicação do algoritmo de descida em gradiente
+        """Aplicação do algoritmo de descida em gradiente para regressão linear
 
         Args:
             learning_rate (float): taxa de aprendizado
             n_iterations (int): número de iterações
         """
         for i in range(n_iterations):
+            loss_grad = self.loss_gradient()
+            
             # w^(t+1) = w^(t) - eta * grad(L(w^(t)))
-            self.weights = self.weights - learning_rate*self.loss_gradient()
-            print(self.weights)
-            # self.weight_gradient()
+            self.weights = self.weights - learning_rate*loss_grad
     
     
     def loss_gradient(self) -> np.array:
         """Cálculo do gradiente da função de custo
 
         Returns:
-            np.array: gradiente da função de custo, em w = (w_0, w_1, ..., w_n)
+            np.array: gradiente grad L = (grad_w_0, grad_w_1, grad_w_2, ..., grad_w_n) da 
+            função de custo L = sum((ŷ - y)^2)/n, em w = (w_0, w_1, ..., w_n)
         """
-        # grad = (grad_w_0, grad_w_1, grad_w_2, ..., grad_w_n)
+        # grad L = (grad_w_0, grad_w_1, grad_w_2, ..., grad_w_n)
         grad = np.zeros(self.weights_dim)
         
         # pontos do dataset de treino
         points = self.train_dataset.index
         n_points = len(points)
         
-        # error here
+        # para cada ponto, computar sua parcela no gradiente e somar ao todo
         for i in points:
+            # P = (x_1, x_2, x_3, ..., x_n, y)
             point = np.array(self.train_dataset.loc[i])
-            w_0 = self.weights[0]
-            y = point[:-1][0]
-            dot_prod = np.dot(point[:-1], self.weights[1:])
             
-            grad[0] = grad[0] + (2*(w_0 + dot_prod - y)/n_points)
+            # x = (x_1, x_2, x_3, ..., x_n); y = y
+            x, y = point[:-1], point[-1]
             
-            for i in range(1, self.weights_dim):
-                grad[i] = grad[i] + (2*point[i]*(w_0 + dot_prod - y)/n_points)
-         
+            # ŷ = f(x) = w_0 + w_1*x_1 + w_2*x_2 + w_3*x_3 + ... + w_n*x_n
+            y_hat = self.predict(x)
+            
+            # grad_0 = (2/n)*sum {ŷ_i - y_i}
+            grad[0] = grad[0] + (2*(y_hat - y)/n_points)
+            
+            # grad_j = (2/n)*sum {x_j*(ŷ_i - y_i)}
+            k = 0
+            for grad_j in grad[1:]:
+                grad_j = grad_j + (2*x[k]*(y_hat - y)/n_points)
+                grad[k+1] = grad_j
+                k = k + 1
+            
         return grad
     
     
@@ -72,6 +82,7 @@ class LinearRegressor:
             float: valor predito ŷ = ŷ(x)
         """
         y = self.weights[0] + np.dot(self.weights[1:], x_coordinates)
+        return y
     
     
 def test():
@@ -79,7 +90,7 @@ def test():
     train_dataset, test_dataset = DatasetHandler.train_test_split(df, 0.8)
     lin_reg = LinearRegressor(train_dataset, test_dataset)
     
-    lin_reg.gradient_descendent_fit(0.015, 40)
-    # print(lin_reg.weights)
+    lin_reg.gradient_descendent_fit(0.01, 700)
+    print(lin_reg.weights)
     
 test()
