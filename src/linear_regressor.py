@@ -85,12 +85,28 @@ class LinearRegressor:
         return y
     
     
+    def get_loss(self):
+        test_samples_indexes = self.test_dataset.index
+        n_samples = len(test_samples_indexes)
+        
+        loss = 0
+        
+        for i in test_samples_indexes:
+            sample = self.test_dataset.loc[i]
+            x = sample[:-1]
+            y = sample[-1]
+            y_hat = self.predict(x)
+             
+            loss = loss + ((y_hat - y)*(y_hat - y)/n_samples)
+        
+        return loss
+    
 def test():
     df = DatasetHandler.get_dataframe('01.csv')
     train_dataset, test_dataset = DatasetHandler.train_test_split(df, 0.8)
     lin_reg = LinearRegressor(train_dataset, test_dataset)
     
-    lin_reg.gradient_descendent_fit(0.01, 700)
-    print(lin_reg.weights)
+    lin_reg.gradient_descendent_fit(0.01, 100)
+    print(f'w = {lin_reg.weights}; loss = {lin_reg.get_loss()}')
     
 test()
